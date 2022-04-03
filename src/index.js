@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import './index.css';
 import App from './App';
+import Horizontal from './pages/horizontal';
 // import reportWebVitals from './reportWebVitals';
 
 // ReactDOM.render(
@@ -12,7 +14,14 @@ import App from './App';
 // );
 const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container)
-root.render(<App />)
+root.render(
+  <Router>
+    <Routes>
+      <Route path='/' element={<App />}></Route>
+      <Route path='/horizontal' element={<Horizontal />}></Route>
+    </Routes>
+  </Router>
+)
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
