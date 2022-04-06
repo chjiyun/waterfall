@@ -1,6 +1,5 @@
-import React, { Component } from "react";
-import { PhotoSlider } from 'react-photo-view'
-import styles from './style.module.scss';
+import React, { useState } from "react";
+import styles from './style.scss';
 import img1 from '../static/images/1.jpg'
 import img2 from '../static/images/2.jpg'
 import img3 from '../static/images/3.jpg'
@@ -109,70 +108,36 @@ const data = [
     height: 884,
   },
 ]
-class Horizontal extends Component {
-  constructor() {
-    super();
-    this.state = {
-      list: data,
-      visible: false,
-      photoIndex: 0,
-    };
-  }
-  componentDidMount() {
-    // console.log(this.state)
-  }
-  handleOpenSlider = (e, index) => {
-    this.setState({
-      visible: true,
-      photoIndex: index,
-    })
-  }
-  handleCloseSlider = () => {
-    this.setState({
-      visible: false
-    })
-  }
-  setPhotoIndex = (index) => {
-    this.setState({
-      photoIndex: index
-    })
-  }
+function Horizontal() {
+  const [ list, setList ] = useState(data)
 
-  render() {
-    const { list, visible, photoIndex } = this.state
-    const itemList = list.map((v, i)=> {
-      const w = v.width*200/v.height
-      return (
-        <div 
-          className={styles.item} 
-          key={v.id}
-          style={{ width: w, flexGrow: w }}
-          onClick={(e) => this.handleOpenSlider(e, i)}
-        >
-          <i style={{ paddingBottom: `${v.height/v.width*100}%` }}></i>
-          <img src={v.url} alt="" />
-        </div>
-      )
-    })
-    const images = list.map(v => ({ src: v.url, key: v.id }))
+  // didMount() {
+  //   console.log(styles)
+  //   // console.log(useId())
+  // }
+
+  const itemList = list.map(v => {
+    const w = v.width*200/v.height
     return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h2>Horizontal Waterfall</h2>
-        </div>
-        <section className={styles.wrapper}>
-          {itemList}
-        </section>
-        <PhotoSlider 
-          images={images}
-          visible={visible}
-          maskOpacity={0.75}
-          onClose={this.handleCloseSlider}
-          index={photoIndex}
-          onIndexChange={this.setPhotoIndex}
-        />
+      <div 
+        className="item" 
+        key={v.id}
+        style={{ width: w, flexGrow: w }}
+      >
+        <i style={{ paddingBottom: `${v.height/v.width*100}%` }}></i>
+        <img src={v.url} alt="" />
       </div>
     )
-  }
+  })
+  return (
+    <div className="container">
+      <div className="header">
+        <h2>Horizontal Waterfall</h2>
+      </div>
+      <section className="img-wrapper">
+        {itemList}
+      </section>
+    </div>
+  )
 }
 export default Horizontal

@@ -1,0 +1,40 @@
+
+.container {
+  max-width: 1200px;
+  min-width: 320px;
+  margin: 0 auto;
+}
+.header {
+  h2 {
+    text-align: center;
+    color: #333;
+    font-size: 28px;
+  }
+}
+.wrapper {
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  &::after {
+    content: '';
+    flex-grow: 999999999;
+  }
+}
+.item {
+  margin: 4px;
+  background-color: gray;
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: zoom-in;
+  
+  i {
+    display: block;
+  }
+  img {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    vertical-align: bottom;
+  }
+}
