@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { PhotoSlider } from 'react-photo-view'
+import debounce from 'lodash/debounce';
 import styles from './style.module.scss';
 import img1 from '../static/images/1.jpg'
 import img2 from '../static/images/2.jpg'
@@ -109,6 +110,56 @@ const data = [
     height: 884,
   },
 ]
+// 计算每个图片的缩放后的宽度
+function calculate(source, contentWidth, baseHeight, margin= 8) {
+  source.forEach((v, i) => {
+    v.aspectRatio = v.width / v.height
+    v.index = i
+  })
+  const data = [[]]
+  let i = 0
+  // 每行图片宽度累加值
+  let width = 0
+  for (const item of source) {
+    const imgWidth = baseHeight * item.aspectRatio
+    width += imgWidth
+    //如果每行图片累加宽度大于容器宽度，去掉多余的宽度，整体进行缩放适应容器让右边对齐
+    if (width > contentWidth) {
+      // 减去边距
+      const cw = contentWidth - (data[i].length - 1) * margin
+      width -= imgWidth
+      // 缩放后的高
+      const height = baseHeight * cw / width
+      data[i].forEach(v => {
+        v.rw = v.aspectRatio * height
+        v.rh = height
+      })
+      width = imgWidth
+      i++
+      data[i] = []
+    }
+    data[i].push({
+      ...item,
+      rw: imgWidth,
+      rh: baseHeight,
+      row: i,
+    })
+  }
+  let left = 0
+  let top = 0
+  const dataLength = data.length
+  for (let i = 0; i < dataLength; i++) {
+    data[i].forEach(v => {
+      v.left = left
+      v.top = top
+      left += v.rw + margin
+    })
+    left = 0
+    top += data[i][0].rh + margin
+  }
+  return data
+}
+
 class Horizontal extends Component {
   constructor() {
     super();
@@ -116,11 +167,52 @@ class Horizontal extends Component {
       list: data,
       visible: false,
       photoIndex: 0,
+      datas: [], //用二维数组保存每一行数据
+      baseHeight: 300, //每一行的基础高度
+      margin: 8,
+      contentHeight: 0,
+      contentWidth: 0,
     };
+    this.source = data
+    this.onResize = debounce(this.onResize, 400)
   }
   componentDidMount() {
-    // console.log(this.state)
+    this.onResize()
+    window.addEventListener('resize', this.onResize);
   }
+  
+  
+  onResize = () => {
+    const contentWidth = this.wrapperRef.clientWidth
+    console.log(contentWidth)
+    const { baseHeight, margin } = this.state
+    const datas = calculate(this.source, contentWidth, baseHeight, margin)
+    let contentHeight = datas.reduce((res, cur) => {
+      return res + cur[0].rh
+    }, 0)
+    // 加上边距
+    contentHeight += (datas.length - 1) * margin
+    this.setState({
+      datas: datas.flat(),
+      contentHeight,
+      contentWidth,
+    })
+  }
+
+  // componentDidUpdate(prevProps, prevState) {
+  //   console.log(this.wrapperRef.clientWidth)
+  //   if (prevState.contentWidth !== this.state.contentWidth) {
+  //     this.onResize()
+  //   }
+  // }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+  }
+
+  saveWrapperRef = (ref) => {
+    this.wrapperRef = ref
+  }
+
   handleOpenSlider = (e, index) => {
     this.setState({
       visible: true,
@@ -139,30 +231,46 @@ class Horizontal extends Component {
   }
 
   render() {
-    const { list, visible, photoIndex } = this.state
-    const itemList = list.map((v, i)=> {
-      const w = v.width*200/v.height
+    const { list, visible, photoIndex, datas, margin, contentHeight } = this.state
+    // const itemList = list.map((v, i)=> {
+    //   const w = v.width*300/v.height
+    //   return (
+    //     <div 
+    //       className={styles.item} 
+    //       key={v.id}
+    //       style={{ width: w, flexGrow: w }}
+    //       onClick={(e) => this.handleOpenSlider(e, i)}
+    //     >
+    //       <i style={{ paddingBottom: `${v.height/v.width*100}%` }}></i>
+    //       <img src={v.url} alt="" />
+    //     </div>
+    //   )
+    // })
+    const imgList = datas.map(v => {
       return (
         <div 
-          className={styles.item} 
+          className={styles["justified-layout-item"]} 
+          onClick={(e) => this.handleOpenSlider(e, v.index)} 
           key={v.id}
-          style={{ width: w, flexGrow: w }}
-          onClick={(e) => this.handleOpenSlider(e, i)}
+          style={{ width: v.rw, height: v.rh, left: v.left, top: v.top }}
         >
-          <i style={{ paddingBottom: `${v.height/v.width*100}%` }}></i>
           <img src={v.url} alt="" />
         </div>
       )
     })
-    const images = list.map(v => ({ src: v.url, key: v.id }))
+    const images = datas.map(v => ({ src: v.url, key: v.id }))
     return (
       <div className={styles.container}>
         <div className={styles.header}>
           <h2>Horizontal Waterfall</h2>
         </div>
-        <section className={styles.wrapper}>
+        {/* <div className={styles.wrapper} >
           {itemList}
-        </section>
+        </div> */}
+        <div className={styles["justified-layout"]} ref={this.saveWrapperRef} style={{ height: contentHeight }}>
+          {imgList}
+        </div>
+        <div className={styles.pagination}></div>
         <PhotoSlider 
           images={images}
           visible={visible}
