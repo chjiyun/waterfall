@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import './index.css';
+import './static/css/loading.scss';
 import App from './App';
 import Horizontal from './pages/horizontal';
 // import reportWebVitals from './reportWebVitals';

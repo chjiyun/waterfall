@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { PhotoSlider } from 'react-photo-view'
 import debounce from 'lodash/debounce';
+import throttle from 'lodash/throttle';
 import styles from './style.module.scss';
 import img1 from '../static/images/1.jpg'
 import img2 from '../static/images/2.jpg'
@@ -17,6 +18,10 @@ import img12 from '../static/images/12.jpg'
 import img13 from '../static/images/13.jpg'
 import img14 from '../static/images/14.jpeg'
 import img15 from '../static/images/15.jpeg'
+import img16 from '../static/images/16.jpg'
+import img17 from '../static/images/17.jpg'
+import img18 from '../static/images/18.jpg'
+import img19 from '../static/images/19.jpg'
 
 const data = [
   {
@@ -109,6 +114,30 @@ const data = [
     width: 1280,
     height: 884,
   },
+  {
+    id: 16,
+    url: img16,
+    width: 1365,
+    height: 2048,
+  },
+  {
+    id: 17,
+    url: img17,
+    width: 1920,
+    height: 1080,
+  },
+  {
+    id: 18,
+    url: img18,
+    width: 1920,
+    height: 1126,
+  },
+  {
+    id: 19,
+    url: img19,
+    width: 1920,
+    height: 1080,
+  },
 ]
 // 计算每个图片的缩放后的宽度
 function calculate(source, contentWidth, baseHeight, margin= 8) {
@@ -172,20 +201,26 @@ class Horizontal extends Component {
       margin: 8,
       contentHeight: 0,
       contentWidth: 0,
+      loading: false,
     };
-    this.source = data
+    this.source = []
     this.onResize = debounce(this.onResize, 400)
+    this.onScroll = throttle(this.onScroll, 400)
+    // 300: 基础高度 200：最小基础高度
+    this.decreaseUnit = (1600-300)/(300 - 100)
   }
   componentDidMount() {
-    this.onResize()
+    this.fetchData()
     window.addEventListener('resize', this.onResize);
+    window.addEventListener('scroll', this.onScroll);
   }
   
-  
-  onResize = () => {
+  renderData = () => {
     const contentWidth = this.wrapperRef.clientWidth
     console.log(contentWidth)
-    const { baseHeight, margin } = this.state
+    let { baseHeight, margin } = this.state
+    // 最小基础高度：200
+    baseHeight = baseHeight - (1600-contentWidth) / this.decreaseUnit
     const datas = calculate(this.source, contentWidth, baseHeight, margin)
     let contentHeight = datas.reduce((res, cur) => {
       return res + cur[0].rh
@@ -196,7 +231,40 @@ class Horizontal extends Component {
       datas: datas.flat(),
       contentHeight,
       contentWidth,
+      loading: false,
     })
+  }
+  
+  onResize = () => {
+    this.renderData()
+  }
+
+  // 滚动无限加载
+  onScroll = () => {
+    const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
+    const { loading } = this.state
+    if (scrollTop + clientHeight >= scrollHeight - 100 && !loading) {
+      console.log(scrollTop, clientHeight, scrollHeight)
+      console.log('Almost to the end')
+      this.setState({ loading: true })
+      setTimeout(this.fetchData, 1500)
+    }
+  }
+  // 拉取数据
+  fetchData = () => {
+    let id = 0
+    if (this.source.length > 0) {
+      id = this.source[this.source.length-1].id
+    }
+    const newData = data.map(v => {
+      id++
+      return {
+        ...v,
+        id,
+      }
+    })
+    this.source.push(...newData)
+    this.renderData()
   }
 
   // componentDidUpdate(prevProps, prevState) {
@@ -207,6 +275,7 @@ class Horizontal extends Component {
   // }
   componentWillUnmount() {
     window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('scroll', this.onScroll);
   }
 
   saveWrapperRef = (ref) => {
@@ -231,7 +300,7 @@ class Horizontal extends Component {
   }
 
   render() {
-    const { list, visible, photoIndex, datas, margin, contentHeight } = this.state
+    const { list, visible, photoIndex, datas, margin, contentHeight, loading } = this.state
     // const itemList = list.map((v, i)=> {
     //   const w = v.width*300/v.height
     //   return (
@@ -269,6 +338,9 @@ class Horizontal extends Component {
         </div> */}
         <div className={styles["justified-layout"]} ref={this.saveWrapperRef} style={{ height: contentHeight }}>
           {imgList}
+        </div>
+        <div className={styles.loading} style={{ display: loading ? null : 'none' }}>
+          <div className="loading-dot"></div>
         </div>
         <div className={styles.pagination}></div>
         <PhotoSlider 
