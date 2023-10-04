@@ -74,14 +74,7 @@
   position: absolute;
   background-color: lightgray;
   transition: all .3s;
-  overflow: hidden;
-  border-radius: 2px;
   cursor: zoom-in;
-  
-  img {
-    width: 100%;
-    height: 100%;
-  }
 }
 .loading {
   width: 100%;

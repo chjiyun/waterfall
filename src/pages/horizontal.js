@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { PhotoSlider } from 'react-photo-view'
 import debounce from 'lodash/debounce';
 import throttle from 'lodash/throttle';
+import WfImage from '../components/wfImage';
 import styles from './style.module.scss';
 import img1 from '../static/images/1.jpg'
 import img2 from '../static/images/2.jpg'
@@ -140,7 +141,7 @@ const data = [
   },
 ]
 // 计算每个图片的缩放后的宽度
-function calculate(source, contentWidth, baseHeight, margin= 8) {
+function calculate(source, contentWidth, baseHeight, margin) {
   source.forEach((v, i) => {
     v.aspectRatio = v.width / v.height
     v.index = i
@@ -198,7 +199,7 @@ class Horizontal extends Component {
       photoIndex: 0,
       datas: [], //用二维数组保存每一行数据
       baseHeight: 300, //每一行的基础高度
-      margin: 8,
+      margin: 8, // 图片间距  初始值
       contentHeight: 0,
       contentWidth: 0,
       loading: false,
@@ -221,6 +222,9 @@ class Horizontal extends Component {
     let { baseHeight, margin } = this.state
     // 最小基础高度：200
     baseHeight = baseHeight - (1600-contentWidth) / this.decreaseUnit
+    if (document.documentElement.clientWidth <= 420) {
+      margin = 6
+    }
     const datas = calculate(this.source, contentWidth, baseHeight, margin)
     let contentHeight = datas.reduce((res, cur) => {
       return res + cur[0].rh
@@ -261,6 +265,7 @@ class Horizontal extends Component {
       return {
         ...v,
         id,
+        type: v.url.substring(v.url.lastIndexOf(".")+1).toUpperCase(),
       }
     })
     this.source.push(...newData)
@@ -323,7 +328,7 @@ class Horizontal extends Component {
           key={v.id}
           style={{ width: v.rw, height: v.rh, left: v.left, top: v.top }}
         >
-          <img src={v.url} alt="" />
+          <WfImage {...v} />
         </div>
       )
     })
