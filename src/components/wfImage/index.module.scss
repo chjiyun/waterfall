@@ -56,11 +56,12 @@
     color: #fff;
     font-weight: 600;
     font-size: 12px;
-    line-height: normal;
+    line-height: 1.5;
     white-space: nowrap;
     border-radius: 2px;
     opacity: 0;
     transition: opacity .5s;
+    vertical-align: baseline;
 
     &:global(.tag-img-type) {
       border: 0.5px solid hsla(0,0%,100%,.5);
